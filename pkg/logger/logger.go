@@ -19,7 +19,6 @@ const (
 )
 
 type Options struct {
-	Level       LogLevel
 	Environment string
 }
 
@@ -29,6 +28,7 @@ type Logger interface {
 	Warn(string)
 	Error(string, error)
 	Debug(string)
+	Fatal(string, error)
 }
 
 // loggerImpl is the implementation of the Logger interface using zerolog.
@@ -40,13 +40,6 @@ var Global *loggerImpl
 
 // NewLogger initializes the logger
 func NewLogger(options Options) {
-	if options.Level == DebugLevel {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else if options.Level == InfoLevel {
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	} else {
-		panic("unknown log level")
-	}
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -55,6 +48,7 @@ func NewLogger(options Options) {
 	if Global == nil {
 		Global = &loggerImpl{}
 		if options.Environment == "development" {
+			zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			buildInfo, _ := debug.ReadBuildInfo()
 			Global.logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339}).
 				Level(zerolog.TraceLevel).
@@ -65,6 +59,7 @@ func NewLogger(options Options) {
 				Str("go_version", buildInfo.GoVersion).
 				Logger()
 		} else {
+			zerolog.SetGlobalLevel(zerolog.InfoLevel)
 			Global.logger = zerolog.New(os.Stdout).
 				With().Timestamp().Str("hostname", hostname).Logger()
 		}
@@ -91,6 +86,10 @@ func (l *loggerImpl) Warn(msg string) {
 // Debug logs a debug message.
 func (l *loggerImpl) Debug(msg string) {
 	l.logger.Debug().Msg(msg)
+}
+
+func (l *loggerImpl) Fatal(msg string, err error) {
+	l.logger.Fatal().Caller().Err(err).Msg(msg)
 }
 
 //Get the Global logger
