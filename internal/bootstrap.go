@@ -1,7 +1,0 @@
-package bootstrap
-
-
-func SetupServer() {
-	
-	
-}

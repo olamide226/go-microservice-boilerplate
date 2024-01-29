@@ -1,26 +1,19 @@
 package main
 
 import (
-	"github.com/olamide226/go-microservice/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/olamide226/go-microservice/internal"
+	"github.com/olamide226/go-microservice/internal/bootstrap"
+	"github.com/olamide226/go-microservice/internal/routes"
+	"github.com/olamide226/go-microservice/pkg/logger"
 )
 
 func main() {
-	logger.NewLogger(logger.Options{
-		Level:       logger.DebugLevel,
-		Environment: "development",
-	})
+
+	env := bootstrap.SetupDependencies()
+
 	logger.Global.Info("Starting the application...")
 
-	bootstrap.SetupServer()
 	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		logger.Global.Debug("Ping endpoint called")
-		c.JSON(200, gin.H{
-			"message": "pong",
-			"level": logger.DebugLevel,
-		})
-	})
-	router.Run(":8000") // listen and serve on
+	routes.Setup(router)
+	router.Run(env.ServerAddress) // listen and serve on
 }
