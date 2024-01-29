@@ -7,13 +7,10 @@ import (
 )
 
 func main() {
-	logger.NewLogger(logger.Options{
-		Level:       logger.DebugLevel,
-		Environment: "development",
-	})
-	logger.Global.Info("Starting the application...")
+	
+	bootstrap.SetupDependencies()
 
-	bootstrap.SetupServer()
+	logger.Global.Info("Starting the application...")
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {
 		logger.Global.Debug("Ping endpoint called")
